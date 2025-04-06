@@ -48,7 +48,8 @@ function createLightweightChart(containerId, lineColor) {
 
 function updateLightweightChart(series, value) {
     const now = new Date();
-    const timestamp = Math.floor(now.getTime() / 1000);
+    // Ajustar a hora de Colombia (UTC-5)
+    const timestamp = Math.floor(now.getTime() / 1000) - (now.getTimezoneOffset() * 60) - (0 * 3600); // restar diferencia si estás en UTC
     series.update({ time: timestamp, value });
 }
 
