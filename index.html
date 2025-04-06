@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Riego</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="https://unpkg.com/paho-mqtt@1.1.0/paho-mqtt.js"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Sistema de Riego</h1>
+        <nav aria-label="Navegación principal">
+            <div class="dropdown">
+                <button class="dropbtn">Menú</button>
+                <div class="dropdown-content">
+                    <a href="pagina2.html">Página 2</a>
+                    <a href="pagina3.html">Página 3</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="status">
+            <h2>Estado del Sistema</h2>
+            
+            <!-- Información de estado del sistema -->
+            <p>Bus de Voltaje: <span id="busdevoltaje">Cargando...</span></p>
+            <p>Temperatura del Tablero: <span id="temperaturaTablero">Cargando...</span></p>
+            <p>Humedad de Arándano: <span id="humedadArandano">Cargando...</span></p>
+            <p>Temperatura Raspberry: <span id="temperaturaRaspberry">Cargando...</span></p>
+            <p>Frecuencia: <span id="frecuencia">Cargando...</span></p>
+            <p>Activación: <span id="activacion">Cargando...</span></p>
+            <p>Control: <span id="control">Cargando...</span></p>
+            <p>Estado Variador: <span id="estadoVariador">Cargando...</span></p>
+            <p>Temperatura Variador: <span id="temperaturaVariador">Cargando...</span></p>
+            <p>Torque: <span id="torque">Cargando...</span></p>
+           
+            
+
+            <!-- Gráficos con Lightweight Charts -->
+            <div id="busdevoltajeChart" style="height: 300px;"></div>
+            <p>Gráfico de Bus de Voltaje</p>
+
+            <div id="temperaturaTableroChart" style="height: 300px;"></div>
+            <p>Gráfico de Temperatura del Tablero</p>
+
+            <div id="humedadArandanoChart" style="height: 300px;"></div>
+            <p>Gráfico de Humedad de Arándano</p>
+
+            <div id="temperaturaRaspberryChart" style="height: 300px;"></div>
+            <p>Gráfico de Temperatura Raspberry</p>
+            <div id="frecuenciaChart" style="height: 300px;"></div>
+            <p>Gráfico de Frecuencia</p>
+
+            <div id="activacionChart" style="height: 300px;"></div>
+            <p>Gráfico de Activación</p>
+
+            <div id="controlChart" style="height: 300px;"></div>
+            <p>Gráfico de Control</p>
+
+            <div id="estadoVariadorChart" style="height: 300px;"></div>
+            <p>Gráfico de Estado Variador</p>
+
+            <div id="temperaturaVariadorChart" style="height: 300px;"></div>
+            <p>Gráfico de Temperatura Variador</p>
+
+            <div id="torqueChart" style="height: 300px;"></div>
+            <p>Gráfico de Torque</p>
+
+        </section>
+    </main>
+</body>
+</html>
