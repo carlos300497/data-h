@@ -1,0 +1,155 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+/* Estilos del menú */
+nav {
+    display: flex;
+    justify-content: left;
+    margin-top: 10px;
+}
+
+/* Botón del menú */
+.dropbtn {
+    background-color: #3e8e41;
+    color: white;
+    padding: 14px 20px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* Contenedor del menú */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Contenido del menú desplegable */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    min-width: max-content;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    text-align: center;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Estilos de los enlaces dentro del menú */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.2s;
+}
+
+/* Cambio de color al pasar el mouse */
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+/* Mostrar el menú cuando se pasa el mouse */
+.dropdown:hover .dropdown-content {
+    display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(5px);
+}
+
+/* Encabezado */
+header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 1em;
+    text-align: center;
+    animation: changeBackground 5s infinite;
+    #status {
+        display: flex;
+        flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea si no caben */
+        gap: 20px; /* Espaciado entre elementos */
+        justify-content: space-between; /* Distribuye los elementos horizontalmente */
+        align-items: flex-start; /* Alinea los elementos arriba */
+    }
+
+    #status p {
+        background-color: #f4f4f4;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        min-width: 180px;
+        text-align: center;
+    }
+}
+
+
+/* Contenido principal */
+main {
+    padding: 1em;
+    animation: fadeIn 1s ease-in-out;
+}
+
+#status {
+    background-color: white;
+    padding: 1em;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    animation: slideIn 1s ease-in-out;
+}
+
+/* Keyframes para animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes changeBackground {
+    0% {
+        background-color: #4CAF50;
+    }
+    50% {
+        background-color: #45a049;
+    }
+    100% {
+        background-color: #4CAF50;
+    }
+}
+
+/* Botones */
+button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+button:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+}
