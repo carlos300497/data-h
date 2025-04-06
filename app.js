@@ -103,7 +103,7 @@ async function loadDataFromCSV(series, topic) {
 
             const value = parseFloat(valueStr);
             const date = new Date(timeStr);
-            const timestamp = Math.floor(date.getTime() / 1000);
+            const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600);
             data.push({ time: timestamp, value });
         }
 
