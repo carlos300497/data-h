@@ -98,14 +98,15 @@ async function loadDataFromCSV(series, topic) {
         const data = [];
 
         for (let row of rows) {
-            const [csvTopic, valueStr, timeStr] = row.split(',');
-            if (csvTopic !== topic) continue;
+            const [id, csvTopic, valueStr, timeStr] = row.split(',');
+            if (csvTopic.trim() !== topic) continue;
 
             const value = parseFloat(valueStr);
             const date = new Date(timeStr);
             const timestamp = Math.floor(date.getTime() / 1000);
             data.push({ time: timestamp, value });
         }
+
 
         series.setData(data);
         console.log(`📊 Cargado histórico para ${topic}`);
