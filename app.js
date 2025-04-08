@@ -49,7 +49,7 @@ function updateLightweightChart(series, value) {
 
 // Leer y cargar datos desde CSV
 async function loadCSVData() {
-    const response = await fetch('https://raw.githubusercontent.com/carlos300497/data-h/main/lecturas.csv');
+    const response = await fetch('https://github.com/carlos300497/data-h/blob/0b2fa58bf81e2a35cb0caa3787109fbc1d6208b9/lecturas.csv');
     const text = await response.text();
     const lines = text.trim().split('\n');
     const headers = lines[0].split(',');
