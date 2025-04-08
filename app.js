@@ -1,7 +1,7 @@
+// Tu código original con MQTT y lightweight charts
 const broker = 'wss://broker.emqx.io:8084/mqtt';
 const client = new Paho.Client(broker, "clientId-" + Math.floor(Math.random() * 10000));
 
-// Configuración de los gráficos y tópicos MQTT
 const graficos = [
     { id: "humedadArandanoChart", topic: "sensor/humedad/arandano", color: "#3498DB", labelId: "humedadArandano" },
     { id: "temperaturaTableroChart", topic: "sensor/temperatura/tablero", color: "#E74C3C", labelId: "temperaturaTablero" },
@@ -15,7 +15,7 @@ const graficos = [
     { id: "busdevoltajeChart", topic: "inomax/busdevoltaje", color: "#FF8C00", labelId: "busdevoltaje" }
 ];
 
-const chartSeriesMap = {}; // Relación tópico -> gráfico
+const chartSeriesMap = {};
 
 function createLightweightChart(containerId, lineColor) {
     const container = document.getElementById(containerId);
@@ -38,19 +38,42 @@ function createLightweightChart(containerId, lineColor) {
         },
     });
 
-    return chart.addLineSeries({
-        color: lineColor,
-        lineWidth: 2,
-    });
+    return chart.addLineSeries({ color: lineColor, lineWidth: 2 });
 }
 
 function updateLightweightChart(series, value) {
     const now = new Date();
-    const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600); // Ajuste GMT-5
+    const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600); // GMT-5
     series.update({ time: timestamp, value });
 }
 
-// Manejo de mensajes entrantes desde MQTT
+// Leer y cargar datos desde CSV
+async function loadCSVData() {
+    const response = await fetch('datos.csv');
+    const text = await response.text();
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',');
+
+    // Crear mapa de series
+    for (let i = 1; i < lines.length; i++) {
+        const row = lines[i].split(',');
+        const time = parseInt(row[0]);
+
+        for (let j = 1; j < headers.length; j++) {
+            const topic = headers[j];
+            const value = parseFloat(row[j]);
+
+            const grafico = graficos.find(g => g.topic === topic);
+            if (grafico && chartSeriesMap[topic]) {
+                chartSeriesMap[topic].update({ time, value });
+            }
+        }
+    }
+
+    console.log("📊 Datos históricos del CSV cargados");
+}
+
+// Manejo de MQTT
 client.onMessageArrived = function (message) {
     const topic = message.destinationName;
     const value = parseFloat(message.payloadString.replace(/\[|\]|"/g, ""));
@@ -58,7 +81,6 @@ client.onMessageArrived = function (message) {
     const grafico = graficos.find(g => g.topic === topic);
     if (grafico && chartSeriesMap[topic]) {
         updateLightweightChart(chartSeriesMap[topic], value);
-
         const label = document.getElementById(grafico.labelId);
         if (label) label.innerText = value;
     } else {
@@ -74,7 +96,6 @@ client.onConnectionLost = function (responseObject) {
 
 function onConnect() {
     console.log("✅ Conectado al broker MQTT");
-
     graficos.forEach(g => {
         client.subscribe(g.topic, {
             onSuccess: () => console.log(`✅ Suscrito a: ${g.topic}`),
@@ -89,10 +110,12 @@ function onFailure(response) {
 
 client.connect({ onSuccess: onConnect, onFailure });
 
-// Al cargar la página, inicializar los gráficos (sin cargar CSV)
+// Inicializar gráficos y cargar CSV al inicio
 window.onload = () => {
     graficos.forEach(g => {
         const series = createLightweightChart(g.id, g.color);
         chartSeriesMap[g.topic] = series;
     });
+
+    loadCSVData(); // Cargar datos del CSV al iniciar
 };
