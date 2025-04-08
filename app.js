@@ -98,14 +98,20 @@ async function loadDataFromCSV(series, topic) {
         const data = [];
 
         for (let row of rows) {
-            const [id, csvTopic, valueStr, timeStr] = row.split(',');
-            if (csvTopic.trim() !== topic) continue;
+    const [id, csvTopic, valueStr, timeStr] = row.split(',');
+    if (csvTopic.trim() !== topic) continue;
 
-            const value = parseFloat(valueStr);
-            const date = new Date(timeStr);
-            const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600);
-            data.push({ time: timestamp, value });
-        }
+    const value = parseFloat(valueStr);
+    const date = new Date(timeStr);
+    const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600);
+
+    if (isNaN(value) || isNaN(timestamp)) {
+        console.warn(`❌ Fila ignorada - Valor inválido para topic ${csvTopic}:`, row);
+        continue;
+    }
+
+    data.push({ time: timestamp, value });
+}
 
 
         series.setData(data);
