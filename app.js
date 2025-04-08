@@ -68,7 +68,20 @@ client.onMessageArrived = function (message) {
 
     const grafico = graficos.find(g => g.topic === topic);
     if (grafico) {
-        updateLightweightChart(chartSeriesMap[topic], value);
+        const series = chartSeriesMap[topic];
+
+        if (!series) {
+            console.warn(`⚠️ Serie no encontrada para tópico: ${topic}`);
+            return;
+        }
+
+        if (isNaN(value)) {
+            console.warn(`❌ Valor inválido recibido para ${topic}:`, message.payloadString);
+            return;
+        }
+
+        updateLightweightChart(series, value);
+
         const label = document.getElementById(grafico.labelId);
         if (label) label.innerText = value;
     } else {
