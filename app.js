@@ -98,15 +98,17 @@ async function loadDataFromCSV(series, topic) {
         const data = [];
 
         for (let row of rows) {
-            const [id, csvTopic, valueStr, timeStr] = row.split(',');
+            const [id, csvTopic, valorStr, timeStr] = row.split(',');
             if (csvTopic.trim() !== topic) continue;
 
-            const value = parseFloat(valueStr);
+            const value = parseFloat(valorStr);
             const date = new Date(timeStr);
             const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600);
             data.push({ time: timestamp, value });
         }
 
+        // 🔄 Ordenar los datos por fecha (por si vienen desordenados del CSV)
+        data.sort((a, b) => a.time - b.time);
 
         series.setData(data);
         console.log(`📊 Cargado histórico para ${topic}`);
