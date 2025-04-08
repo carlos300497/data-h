@@ -98,22 +98,31 @@ async function loadDataFromCSV(series, topic) {
         const data = [];
 
         for (let row of rows) {
-            const [id, csvTopic, valueStr, timeStr] = row.split(',');
-            if (csvTopic.trim() !== topic) continue;
+            const columns = row.split(',');
+
+            if (columns.length !== 4) {
+                console.warn(`⚠️ Fila ignorada (columnas incorrectas):`, row);
+                continue;
+            }
+
+            const [id, csvTopic, valueStr, timeStr] = columns.map(col => col.trim());
+
+            if (csvTopic !== topic) continue;
 
             const value = parseFloat(valueStr);
             const date = new Date(timeStr);
 
-            if (isNaN(date.getTime())) {
-                console.warn(`❌ Fecha inválida: ${timeStr} en fila:`, row);
+            if (isNaN(value)) {
+                console.warn(`❌ Valor inválido: "${valueStr}" en fila:`, row);
                 continue;
             }
 
-            const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600);
-            if (isNaN(value) || isNaN(timestamp)) {
-                console.warn(`❌ Fila ignorada - Valor inválido para topic ${csvTopic}:`, row);
+            if (isNaN(date.getTime())) {
+                console.warn(`❌ Fecha inválida: "${timeStr}" en fila:`, row);
                 continue;
             }
+
+            const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600); // GMT-5
 
             data.push({ time: timestamp, value });
         }
@@ -129,7 +138,6 @@ async function loadDataFromCSV(series, topic) {
         console.error(`❌ Error al cargar CSV (${topic}):`, error.message);
     }
 }
-
 // ✅ Al cargar la página
 window.onload = () => {
     graficos.forEach(g => {
