@@ -3,7 +3,6 @@ const broker = 'wss://broker.emqx.io:8084/mqtt';
 
 const client = new Paho.Client(broker, "clientId-" + Math.floor(Math.random() * 10000));
 
-// Configuración de todos los gráficos
 const graficos = [
     { id: "humedadArandanoChart", topic: "sensor/humedad/arandano", color: "#3498DB", labelId: "humedadArandano" },
     { id: "temperaturaTableroChart", topic: "sensor/temperatura/tablero", color: "#E74C3C", labelId: "temperaturaTablero" },
@@ -17,7 +16,7 @@ const graficos = [
     { id: "busdevoltajeChart", topic: "inomax/busdevoltaje", color: "#FF8C00", labelId: "busdevoltaje" }
 ];
 
-const chartSeriesMap = {}; // Almacena series por tópico
+const chartSeriesMap = {}; // Series por tópico
 
 function createLightweightChart(containerId, lineColor) {
     const container = document.getElementById(containerId);
@@ -47,43 +46,26 @@ function createLightweightChart(containerId, lineColor) {
 }
 
 function updateLightweightChart(series, value) {
-    if (!series) {
-        console.warn('⚠️ Serie no definida, no se puede actualizar');
-        return;
-    }
-
-    if (value == null || isNaN(value)) {
-        console.warn(`❌ Valor inválido recibido: ${value}`);
+    if (!series || isNaN(value)) {
+        console.warn("⚠️ Serie inválida o valor no numérico:", value);
         return;
     }
 
     const now = new Date();
-    const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600);
+    const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600); // GMT-5
     series.update({ time: timestamp, value });
 }
 
 client.onMessageArrived = function (message) {
     const topic = message.destinationName;
-    const value = parseFloat(message.payloadString.replace(/\[|\]|"/g, ""));
+    const rawValue = message.payloadString.replace(/\[|\]|"/g, "");
+    const value = parseFloat(rawValue);
 
     const grafico = graficos.find(g => g.topic === topic);
     if (grafico) {
-        const series = chartSeriesMap[topic];
-
-        if (!series) {
-            console.warn(`⚠️ Serie no encontrada para tópico: ${topic}`);
-            return;
-        }
-
-        if (isNaN(value)) {
-            console.warn(`❌ Valor inválido recibido para ${topic}:`, message.payloadString);
-            return;
-        }
-
-        updateLightweightChart(series, value);
-
+        updateLightweightChart(chartSeriesMap[topic], value);
         const label = document.getElementById(grafico.labelId);
-        if (label) label.innerText = value;
+        if (label) label.innerText = isNaN(value) ? "N/A" : value;
     } else {
         console.warn(`⚠️ Tópico desconocido: ${topic}`);
     }
@@ -116,7 +98,7 @@ async function loadDataFromCSV(series, topic) {
     try {
         const response = await fetch(CSV_URL);
         const csvText = await response.text();
-        const rows = csvText.trim().split('\n').slice(1);
+        const rows = csvText.trim().split('\n').slice(1); // Omitir encabezado
 
         const data = [];
 
@@ -129,7 +111,6 @@ async function loadDataFromCSV(series, topic) {
             }
 
             const [id, csvTopic, valueStr, timeStr] = columns.map(col => col.trim());
-
             if (csvTopic !== topic) continue;
 
             const value = parseFloat(valueStr);
@@ -146,7 +127,6 @@ async function loadDataFromCSV(series, topic) {
             }
 
             const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600); // GMT-5
-
             data.push({ time: timestamp, value });
         }
 
@@ -161,7 +141,7 @@ async function loadDataFromCSV(series, topic) {
         console.error(`❌ Error al cargar CSV (${topic}):`, error.message);
     }
 }
-// ✅ Al cargar la página
+
 window.onload = () => {
     graficos.forEach(g => {
         const series = createLightweightChart(g.id, g.color);
