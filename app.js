@@ -1,4 +1,3 @@
-// Tu código original con MQTT y lightweight charts
 const broker = 'wss://broker.emqx.io:8084/mqtt';
 const client = new Paho.Client(broker, "clientId-" + Math.floor(Math.random() * 10000));
 
@@ -14,6 +13,20 @@ const graficos = [
     { id: "torqueChart", topic: "inomax/torque", color: "#9966FF", labelId: "torque" },
     { id: "busdevoltajeChart", topic: "inomax/busdevoltaje", color: "#FF8C00", labelId: "busdevoltaje" }
 ];
+
+// Mapa de nombres del CSV a tópicos MQTT
+const csvToTopicMap = {
+    humedad_arandano: "sensor/humedad/arandano",
+    temperatura_tablero: "sensor/temperatura/tablero",
+    temperatura_raspberry: "sensor/temperatura/rasberry",
+    frecuencia: "inomax/frecuencia",
+    activacion: "inomax/activacion",
+    control: "inomax/control",
+    estado_variador: "inomax/estadoVariador",
+    temperatura_variador: "inomax/temperaturaVariador",
+    torque: "inomax/torque",
+    bus_de_voltaje: "inomax/busdevoltaje"
+};
 
 const chartSeriesMap = {};
 
@@ -46,6 +59,7 @@ function updateLightweightChart(series, value) {
     const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600); // GMT-5
     series.update({ time: timestamp, value });
 }
+
 // Leer y cargar datos desde CSV con downsampling
 async function loadCSVData() {
     const response = await fetch('https://raw.githubusercontent.com/carlos300497/data-h/main/lecturas.csv');
@@ -53,24 +67,25 @@ async function loadCSVData() {
     const lines = text.trim().split('\n');
     const headers = lines[0].split(',');
 
-    const step = 50; // <- Puedes ajustar este valor según rendimiento
+    const step = 50; // Ajusta este valor si necesitas mayor rendimiento
 
     for (let i = 1; i < lines.length; i += step) {
         const row = lines[i].split(',');
         const time = parseInt(row[0]);
 
         for (let j = 1; j < headers.length; j++) {
-            const topic = headers[j];
+            const csvKey = headers[j].trim();
+            const topic = csvToTopicMap[csvKey];
             const value = parseFloat(row[j]);
 
-            const grafico = graficos.find(g => g.topic === topic);
-            if (grafico && chartSeriesMap[topic]) {
+            if (topic && chartSeriesMap[topic]) {
                 chartSeriesMap[topic].update({ time, value });
+                console.log(`🟢 Histórico cargado: ${topic} = ${value} @ ${new Date(time * 1000).toLocaleString()}`);
             }
         }
     }
 
-    console.log(`📊 Datos históricos cargados (cada ${step} líneas)`);
+    console.log(`📊 Datos históricos cargados desde CSV (cada ${step} líneas)`);
 }
 
 // Manejo de MQTT
@@ -117,5 +132,5 @@ window.onload = () => {
         chartSeriesMap[g.topic] = series;
     });
 
-    loadCSVData(); // Cargar datos del CSV al iniciar
+    loadCSVData(); // Cargar datos históricos desde CSV
 };
