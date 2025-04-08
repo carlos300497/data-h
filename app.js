@@ -1,6 +1,9 @@
+const CSV_URL = "https://raw.githubusercontent.com/carlos300497/data-h/main/lecturas.csv";
 const broker = 'wss://broker.emqx.io:8084/mqtt';
+
 const client = new Paho.Client(broker, "clientId-" + Math.floor(Math.random() * 10000));
 
+// Configuración de todos los gráficos
 const graficos = [
     { id: "humedadArandanoChart", topic: "sensor/humedad/arandano", color: "#3498DB", labelId: "humedadArandano" },
     { id: "temperaturaTableroChart", topic: "sensor/temperatura/tablero", color: "#E74C3C", labelId: "temperaturaTablero" },
@@ -14,21 +17,7 @@ const graficos = [
     { id: "busdevoltajeChart", topic: "inomax/busdevoltaje", color: "#FF8C00", labelId: "busdevoltaje" }
 ];
 
-// Mapa de nombres del CSV a tópicos MQTT
-const csvToTopicMap = {
-    humedad_arandano: "sensor/humedad/arandano",
-    temperatura_tablero: "sensor/temperatura/tablero",
-    temperatura_raspberry: "sensor/temperatura/rasberry",
-    frecuencia: "inomax/frecuencia",
-    activacion: "inomax/activacion",
-    control: "inomax/control",
-    estado_variador: "inomax/estadoVariador",
-    temperatura_variador: "inomax/temperaturaVariador",
-    torque: "inomax/torque",
-    bus_de_voltaje: "inomax/busdevoltaje"
-};
-
-const chartSeriesMap = {};
+const chartSeriesMap = {}; // Almacena series por tópico
 
 function createLightweightChart(containerId, lineColor) {
     const container = document.getElementById(containerId);
@@ -51,70 +40,29 @@ function createLightweightChart(containerId, lineColor) {
         },
     });
 
-    return chart.addLineSeries({ color: lineColor, lineWidth: 2 });
+    return chart.addLineSeries({
+        color: lineColor,
+        lineWidth: 2,
+    });
 }
 
 function updateLightweightChart(series, value) {
     const now = new Date();
-    const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600); // GMT-5
+    const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600);
     series.update({ time: timestamp, value });
 }
 
-// Leer y cargar datos desde CSV con downsampling
-async function loadCSVData() {
-    try {
-        const response = await fetch('https://raw.githubusercontent.com/carlos300497/data-h/main/lecturas.csv');
-        const text = await response.text();
-        const lines = text.trim().split('\n');
-        const headers = lines[0].split(',').map(h => h.trim());
-
-        console.log("📄 Encabezados del CSV:", headers);
-
-        const step = 50;
-
-        for (let i = 1; i < lines.length; i += step) {
-            const row = lines[i].split(',');
-            const time = parseInt(row[0]);
-
-            for (let j = 1; j < headers.length; j++) {
-                const csvKey = headers[j];
-                const topic = csvToTopicMap[csvKey];
-
-                if (!topic) {
-                    console.warn(`⚠️ Columna ignorada: '${csvKey}' no está en csvToTopicMap`);
-                    continue;
-                }
-
-                const value = parseFloat(row[j]);
-                const series = chartSeriesMap[topic];
-
-                if (series && !isNaN(value)) {
-                    series.update({ time, value });
-                    console.log(`🟢 CSV → ${topic}: ${value} @ ${new Date(time * 1000).toLocaleString()}`);
-                } else {
-                    console.warn(`⚠️ No se pudo graficar: topic=${topic}, value=${value}, series=${!!series}`);
-                }
-            }
-        }
-
-        console.log("✅ Datos históricos cargados correctamente.");
-    } catch (error) {
-        console.error("❌ Error al cargar el CSV:", error);
-    }
-}
-
-// Manejo de MQTT
 client.onMessageArrived = function (message) {
     const topic = message.destinationName;
     const value = parseFloat(message.payloadString.replace(/\[|\]|"/g, ""));
 
     const grafico = graficos.find(g => g.topic === topic);
-    if (grafico && chartSeriesMap[topic]) {
+    if (grafico) {
         updateLightweightChart(chartSeriesMap[topic], value);
         const label = document.getElementById(grafico.labelId);
         if (label) label.innerText = value;
     } else {
-        console.warn(`⚠️ Tópico desconocido o gráfico no inicializado: ${topic}`);
+        console.warn(`⚠️ Tópico desconocido: ${topic}`);
     }
 };
 
@@ -126,6 +74,7 @@ client.onConnectionLost = function (responseObject) {
 
 function onConnect() {
     console.log("✅ Conectado al broker MQTT");
+
     graficos.forEach(g => {
         client.subscribe(g.topic, {
             onSuccess: () => console.log(`✅ Suscrito a: ${g.topic}`),
@@ -140,12 +89,37 @@ function onFailure(response) {
 
 client.connect({ onSuccess: onConnect, onFailure });
 
-// Inicializar gráficos y cargar CSV al inicio
+async function loadDataFromCSV(series, topic) {
+    try {
+        const response = await fetch(CSV_URL);
+        const csvText = await response.text();
+        const rows = csvText.trim().split('\n').slice(1);
+
+        const data = [];
+
+        for (let row of rows) {
+            const [id, csvTopic, valueStr, timeStr] = row.split(',');
+            if (csvTopic.trim() !== topic) continue;
+
+            const value = parseFloat(valueStr);
+            const date = new Date(timeStr);
+            const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600);
+            data.push({ time: timestamp, value });
+        }
+
+
+        series.setData(data);
+        console.log(`📊 Cargado histórico para ${topic}`);
+    } catch (error) {
+        console.error(`❌ Error al cargar CSV (${topic}):`, error.message);
+    }
+}
+
+// ✅ Al cargar la página
 window.onload = () => {
     graficos.forEach(g => {
         const series = createLightweightChart(g.id, g.color);
         chartSeriesMap[g.topic] = series;
+        loadDataFromCSV(series, g.topic);
     });
-
-    loadCSVData(); // Cargar datos históricos desde CSV
 };
