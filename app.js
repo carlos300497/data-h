@@ -62,30 +62,45 @@ function updateLightweightChart(series, value) {
 
 // Leer y cargar datos desde CSV con downsampling
 async function loadCSVData() {
-    const response = await fetch('https://raw.githubusercontent.com/carlos300497/data-h/main/lecturas.csv');
-    const text = await response.text();
-    const lines = text.trim().split('\n');
-    const headers = lines[0].split(',');
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/carlos300497/data-h/main/lecturas.csv');
+        const text = await response.text();
+        const lines = text.trim().split('\n');
+        const headers = lines[0].split(',').map(h => h.trim());
 
-    const step = 50; // Ajusta este valor si necesitas mayor rendimiento
+        console.log("📄 Encabezados del CSV:", headers);
 
-    for (let i = 1; i < lines.length; i += step) {
-        const row = lines[i].split(',');
-        const time = parseInt(row[0]);
+        const step = 50;
 
-        for (let j = 1; j < headers.length; j++) {
-            const csvKey = headers[j].trim();
-            const topic = csvToTopicMap[csvKey];
-            const value = parseFloat(row[j]);
+        for (let i = 1; i < lines.length; i += step) {
+            const row = lines[i].split(',');
+            const time = parseInt(row[0]);
 
-            if (topic && chartSeriesMap[topic]) {
-                chartSeriesMap[topic].update({ time, value });
-                console.log(`🟢 Histórico cargado: ${topic} = ${value} @ ${new Date(time * 1000).toLocaleString()}`);
+            for (let j = 1; j < headers.length; j++) {
+                const csvKey = headers[j];
+                const topic = csvToTopicMap[csvKey];
+
+                if (!topic) {
+                    console.warn(`⚠️ Columna ignorada: '${csvKey}' no está en csvToTopicMap`);
+                    continue;
+                }
+
+                const value = parseFloat(row[j]);
+                const series = chartSeriesMap[topic];
+
+                if (series && !isNaN(value)) {
+                    series.update({ time, value });
+                    console.log(`🟢 CSV → ${topic}: ${value} @ ${new Date(time * 1000).toLocaleString()}`);
+                } else {
+                    console.warn(`⚠️ No se pudo graficar: topic=${topic}, value=${value}, series=${!!series}`);
+                }
             }
         }
-    }
 
-    console.log(`📊 Datos históricos cargados desde CSV (cada ${step} líneas)`);
+        console.log("✅ Datos históricos cargados correctamente.");
+    } catch (error) {
+        console.error("❌ Error al cargar el CSV:", error);
+    }
 }
 
 // Manejo de MQTT
