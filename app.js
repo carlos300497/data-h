@@ -1,8 +1,7 @@
-const CSV_URL = "https://raw.githubusercontent.com/carlos300497/data-h/main/lecturas.csv";
 const broker = 'wss://broker.emqx.io:8084/mqtt';
-
 const client = new Paho.Client(broker, "clientId-" + Math.floor(Math.random() * 10000));
 
+// Configuración de los gráficos y tópicos MQTT
 const graficos = [
     { id: "humedadArandanoChart", topic: "sensor/humedad/arandano", color: "#3498DB", labelId: "humedadArandano" },
     { id: "temperaturaTableroChart", topic: "sensor/temperatura/tablero", color: "#E74C3C", labelId: "temperaturaTablero" },
@@ -16,7 +15,7 @@ const graficos = [
     { id: "busdevoltajeChart", topic: "inomax/busdevoltaje", color: "#FF8C00", labelId: "busdevoltaje" }
 ];
 
-const chartSeriesMap = {}; // Series por tópico
+const chartSeriesMap = {}; // Relación tópico -> gráfico
 
 function createLightweightChart(containerId, lineColor) {
     const container = document.getElementById(containerId);
@@ -46,28 +45,24 @@ function createLightweightChart(containerId, lineColor) {
 }
 
 function updateLightweightChart(series, value) {
-    if (!series || isNaN(value)) {
-        console.warn("⚠️ Serie inválida o valor no numérico:", value);
-        return;
-    }
-
     const now = new Date();
-    const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600); // GMT-5
+    const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600); // Ajuste GMT-5
     series.update({ time: timestamp, value });
 }
 
+// Manejo de mensajes entrantes desde MQTT
 client.onMessageArrived = function (message) {
     const topic = message.destinationName;
-    const rawValue = message.payloadString.replace(/\[|\]|"/g, "");
-    const value = parseFloat(rawValue);
+    const value = parseFloat(message.payloadString.replace(/\[|\]|"/g, ""));
 
     const grafico = graficos.find(g => g.topic === topic);
-    if (grafico) {
+    if (grafico && chartSeriesMap[topic]) {
         updateLightweightChart(chartSeriesMap[topic], value);
+
         const label = document.getElementById(grafico.labelId);
-        if (label) label.innerText = isNaN(value) ? "N/A" : value;
+        if (label) label.innerText = value;
     } else {
-        console.warn(`⚠️ Tópico desconocido: ${topic}`);
+        console.warn(`⚠️ Tópico desconocido o gráfico no inicializado: ${topic}`);
     }
 };
 
@@ -94,58 +89,10 @@ function onFailure(response) {
 
 client.connect({ onSuccess: onConnect, onFailure });
 
-async function loadDataFromCSV(series, topic) {
-    try {
-        const response = await fetch(CSV_URL);
-        const csvText = await response.text();
-        const rows = csvText.trim().split('\n').slice(1); // Omitir encabezado
-
-        const data = [];
-
-        for (let row of rows) {
-            const columns = row.split(',');
-
-            if (columns.length !== 4) {
-                console.warn(`⚠️ Fila ignorada (columnas incorrectas):`, row);
-                continue;
-            }
-
-            const [id, csvTopic, valueStr, timeStr] = columns.map(col => col.trim());
-            if (csvTopic !== topic) continue;
-
-            const value = parseFloat(valueStr);
-            const date = new Date(timeStr);
-
-            if (isNaN(value)) {
-                console.warn(`❌ Valor inválido: "${valueStr}" en fila:`, row);
-                continue;
-            }
-
-            if (isNaN(date.getTime())) {
-                console.warn(`❌ Fecha inválida: "${timeStr}" en fila:`, row);
-                continue;
-            }
-
-            const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600); // GMT-5
-            data.push({ time: timestamp, value });
-        }
-
-        if (data.length === 0) {
-            console.warn(`⚠️ No se encontraron datos válidos para el tópico: ${topic}`);
-            return;
-        }
-
-        series.setData(data);
-        console.log(`📊 Cargado histórico para ${topic}`);
-    } catch (error) {
-        console.error(`❌ Error al cargar CSV (${topic}):`, error.message);
-    }
-}
-
+// Al cargar la página, inicializar los gráficos (sin cargar CSV)
 window.onload = () => {
     graficos.forEach(g => {
         const series = createLightweightChart(g.id, g.color);
         chartSeriesMap[g.topic] = series;
-        loadDataFromCSV(series, g.topic);
     });
 };
