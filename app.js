@@ -47,6 +47,16 @@ function createLightweightChart(containerId, lineColor) {
 }
 
 function updateLightweightChart(series, value) {
+    if (!series) {
+        console.warn('⚠️ Serie no definida, no se puede actualizar');
+        return;
+    }
+
+    if (value == null || isNaN(value)) {
+        console.warn(`❌ Valor inválido recibido: ${value}`);
+        return;
+    }
+
     const now = new Date();
     const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600);
     series.update({ time: timestamp, value });
