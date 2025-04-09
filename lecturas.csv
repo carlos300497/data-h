@@ -711,3 +711,14 @@ id,topic,valor,time
 19872,sensor/temperatura/rasberry,37.6,2025-04-09 09:21:45
 19873,inomax/busdevoltaje,3762.0,2025-04-09 09:21:45
 19874,inomax/temperaturaVariador,313.0,2025-04-09 09:21:45
+19875,sensor/temperatura/rasberry,37.6,2025-04-09 09:21:50
+19876,inomax/temperaturaVariador,313.0,2025-04-09 09:21:53
+19877,sensor/temperatura/tablero,234.0,2025-04-09 09:21:53
+19878,sensor/temperatura/rasberry,38.1,2025-04-09 09:21:55
+19879,inomax/busdevoltaje,3749.0,2025-04-09 09:21:58
+19880,inomax/temperaturaVariador,313.0,2025-04-09 09:21:58
+19881,sensor/temperatura/rasberry,38.6,2025-04-09 09:22:00
+19882,sensor/temperatura/rasberry,38.1,2025-04-09 09:22:05
+19883,inomax/temperaturaVariador,313.0,2025-04-09 09:22:06
+19884,sensor/temperatura/tablero,234.0,2025-04-09 09:22:06
+19885,sensor/temperatura/rasberry,37.6,2025-04-09 09:22:10
