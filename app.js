@@ -130,14 +130,23 @@ async function loadDataFromCSV(series, topic) {
             if (csvTopic.trim() !== topic) continue;
 
             const value = parseFloat(valueStr);
+            if (isNaN(value)) {
+                console.warn(`❌ Valor inválido para topic "${csvTopic}":`, valueStr);
+                continue;
+            }
+
             const date = new Date(timeStr);
             const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600);
+            if (isNaN(timestamp)) continue;
+
             data.push({ time: timestamp, value });
         }
 
+        // 👉 Reducir datos para evitar sobrecarga en el gráfico
+        const dataReducida = downsampleData(data, 1800); // cada 30 minutos (1800s)
+        series.setData(dataReducida);
+        console.log(`📉 Histórico con downsampling cargado para ${topic} (${dataReducida.length} puntos)`);
 
-        series.setData(data);
-        console.log(`📊 Cargado histórico para ${topic}`);
     } catch (error) {
         console.error(`❌ Error al cargar CSV (${topic}):`, error.message);
     }
