@@ -89,6 +89,34 @@ function onFailure(response) {
 
 client.connect({ onSuccess: onConnect, onFailure });
 
+function downsampleData(data, intervalInSeconds = 1800) {
+    if (data.length === 0) return [];
+
+    const result = [];
+    let bucket = [];
+    let startTime = data[0].time;
+
+    for (const point of data) {
+        if (point.time - startTime < intervalInSeconds) {
+            bucket.push(point.value);
+        } else {
+            if (bucket.length > 0) {
+                const avg = bucket.reduce((sum, v) => sum + v, 0) / bucket.length;
+                result.push({ time: startTime, value: avg });
+            }
+            startTime = point.time;
+            bucket = [point.value];
+        }
+    }
+
+    // Último bloque
+    if (bucket.length > 0) {
+        const avg = bucket.reduce((sum, v) => sum + v, 0) / bucket.length;
+        result.push({ time: startTime, value: avg });
+    }
+
+    return result;
+}
 async function loadDataFromCSV(series, topic) {
     try {
         const response = await fetch(CSV_URL);
