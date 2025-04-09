@@ -1255,3 +1255,6 @@ id,topic,valor,time
 20416,sensor/temperatura/rasberry,37.0,2025-04-09 09:39:55
 20417,inomax/temperaturaVariador,316.0,2025-04-09 09:39:57
 20418,sensor/temperatura/tablero,239.0,2025-04-09 09:39:57
+20419,sensor/temperatura/rasberry,37.6,2025-04-09 09:40:00
+20420,inomax/busdevoltaje,3757.0,2025-04-09 09:40:02
+20421,inomax/temperaturaVariador,316.0,2025-04-09 09:40:02
