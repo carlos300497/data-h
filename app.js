@@ -143,7 +143,7 @@ async function loadDataFromCSV(series, topic) {
         }
 
         // 👉 Reducir datos para evitar sobrecarga en el gráfico
-        const dataReducida = downsampleData(data, 1800); // cada 30 minutos (1800s)
+        const dataReducida = downsampleData(data, 600); // cada 30 minutos (1800s)
         series.setData(dataReducida);
         console.log(`📉 Histórico con downsampling cargado para ${topic} (${dataReducida.length} puntos)`);
 
