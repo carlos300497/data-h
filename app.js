@@ -117,14 +117,6 @@ function downsampleData(data, intervalInSeconds = 1800) {
 
     return result;
 }
-<<<<<<< HEAD
-
-=======
-<<<<<<< HEAD
-=======
-
->>>>>>> faf820b (Backup antes de sincronizar)
->>>>>>> 8f50a5d4e5dfc3f4ed727ad3d9726a88c7519d9d
 async function loadDataFromCSV(series, topic) {
     try {
         const response = await fetch(CSV_URL);
@@ -151,12 +143,7 @@ async function loadDataFromCSV(series, topic) {
         }
 
         // 👉 Reducir datos para evitar sobrecarga en el gráfico
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-        const dataReducida = downsampleData(data, 600); // cada 30 minutos (1800s)
-=======
->>>>>>> 8f50a5d4e5dfc3f4ed727ad3d9726a88c7519d9d
+
         const dataReducida = downsampleData(data, 1800); // cada 30 minutos (1800s)
         series.setData(dataReducida);
         console.log(`📉 Histórico con downsampling cargado para ${topic} (${dataReducida.length} puntos)`);
@@ -191,10 +178,7 @@ async function loadDataFromCSV(series, topic) {
 
         // 👉 Reducir datos para evitar sobrecarga en el gráfico
         const dataReducida = downsampleData(data, 1800); // cada 30 minutos (1800s)
-<<<<<<< HEAD
-=======
->>>>>>> faf820b (Backup antes de sincronizar)
->>>>>>> 8f50a5d4e5dfc3f4ed727ad3d9726a88c7519d9d
+
         series.setData(dataReducida);
         console.log(`📉 Histórico con downsampling cargado para ${topic} (${dataReducida.length} puntos)`);
 
