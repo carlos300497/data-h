@@ -117,6 +117,10 @@ function downsampleData(data, intervalInSeconds = 1800) {
 
     return result;
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> faf820b (Backup antes de sincronizar)
 async function loadDataFromCSV(series, topic) {
     try {
         const response = await fetch(CSV_URL);
@@ -143,7 +147,44 @@ async function loadDataFromCSV(series, topic) {
         }
 
         // 👉 Reducir datos para evitar sobrecarga en el gráfico
+<<<<<<< HEAD
         const dataReducida = downsampleData(data, 600); // cada 30 minutos (1800s)
+=======
+        const dataReducida = downsampleData(data, 1800); // cada 30 minutos (1800s)
+        series.setData(dataReducida);
+        console.log(`📉 Histórico con downsampling cargado para ${topic} (${dataReducida.length} puntos)`);
+
+    } catch (error) {
+        console.error(`❌ Error al cargar CSV (${topic}):`, error.message);
+    }
+}async function loadDataFromCSV(series, topic) {
+    try {
+        const response = await fetch(CSV_URL);
+        const csvText = await response.text();
+        const rows = csvText.trim().split('\n').slice(1);
+
+        const data = [];
+
+        for (let row of rows) {
+            const [id, csvTopic, valueStr, timeStr] = row.split(',');
+            if (csvTopic.trim() !== topic) continue;
+
+            const value = parseFloat(valueStr);
+            if (isNaN(value)) {
+                console.warn(`❌ Valor inválido para topic "${csvTopic}":`, valueStr);
+                continue;
+            }
+
+            const date = new Date(timeStr);
+            const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600);
+            if (isNaN(timestamp)) continue;
+
+            data.push({ time: timestamp, value });
+        }
+
+        // 👉 Reducir datos para evitar sobrecarga en el gráfico
+        const dataReducida = downsampleData(data, 1800); // cada 30 minutos (1800s)
+>>>>>>> faf820b (Backup antes de sincronizar)
         series.setData(dataReducida);
         console.log(`📉 Histórico con downsampling cargado para ${topic} (${dataReducida.length} puntos)`);
 
