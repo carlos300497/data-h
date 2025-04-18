@@ -106,6 +106,38 @@ main {
     animation: slideIn 1s ease-in-out;
 }
 
+#humidityStats {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#humidityStats h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+#humidityStatsHeader {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Espaciado horizontal entre las etiquetas */
+    margin-top: 10px;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+#humidityStatsHeader p {
+    background-color: #ffffff;
+    color: #333;
+    padding: 10px 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px; /* Espaciado adicional entre estadísticas */
+}
+
 /* Keyframes para animaciones */
 @keyframes fadeIn {
     from {
@@ -258,4 +290,100 @@ button:hover {
 
 .close-btn:hover {
     background-color: #C0392B;
+}
+
+.calendar-icon {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    margin-left: 10px;
+    color: #4CAF50;
+    transition: transform 0.2s;
+}
+
+.calendar-icon:hover {
+    transform: scale(1.2);
+}
+
+#calendarContainer {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    text-align: center;
+    width: 300px;
+}
+
+#calendarContainer.hidden {
+    display: none;
+}
+
+#calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    margin-bottom: 15px;
+    color: #333; /* Cambiar el color del texto para que sea visible */
+}
+
+#calendar div {
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    color: #333; /* Asegurar que el texto sea visible */
+}
+
+#calendar div:hover {
+    background-color: #f0f0f0;
+    color: #000; /* Cambiar el color del texto al pasar el mouse */
+}
+
+#calendar .selected {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#weekPicker {
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+#calendarHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333; /* Asegurar que el texto del encabezado sea visible */
+}
+
+#calendarHeader button {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #4CAF50;
+    transition: transform 0.2s;
+}
+
+#calendarHeader button:hover {
+    transform: scale(1.2);
+}
+
+#currentMonth {
+    text-align: center;
+    flex-grow: 1;
 }
