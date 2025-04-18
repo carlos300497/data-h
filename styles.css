@@ -1,3 +1,4 @@
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -327,8 +328,9 @@ button:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     text-align: center;
-    width: 300px; /* Ajustar el ancho para mayor claridad */
+    width: 400px; /* Ajustar el ancho para mayor claridad */
     max-width: 90%; /* Asegurar que no se desborde en pantallas pequeñas */
+    font-family: Arial, sans-serif;
 }
 
 #calendarHeader {
@@ -374,7 +376,7 @@ button:hover {
 #calendar div {
     padding: 10px;
     text-align: center;
-    border-radius: 5px;
+    border-radius: 5px; /* Bordes redondeados */
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s;
     color: #333;
@@ -393,6 +395,31 @@ button:hover {
     background-color: #4CAF50;
     color: white;
     border: 1px solid #4CAF50;
+}
+
+/* Ajustar el estilo del mes y año */
+#currentMonth {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+/* Botón de cerrar */
+#calendarContainer button {
+    margin-top: 10px;
+    background-color: #E74C3C;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+#calendarContainer button:hover {
+    background-color: #C0392B;
 }
 
 #cardsCarousel {
