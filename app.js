@@ -18,6 +18,7 @@ const graficos = [
 ];
 
 const chartSeriesMap = {}; // Almacena series por tópico
+const chartDataMap = {}; // Almacena los datos de cada gráfico por tópico
 
 function createLightweightChart(containerId, lineColor) {
     const container = document.getElementById(containerId);
@@ -46,10 +47,24 @@ function createLightweightChart(containerId, lineColor) {
     });
 }
 
-function updateLightweightChart(series, value) {
+function updateLightweightChart(series, value, topic) {
     const now = new Date();
     const timestamp = Math.floor(now.getTime() / 1000) - (5 * 3600);
+
+    // Verificar si la serie existe antes de actualizar
+    if (!series) {
+        console.warn(`⚠️ La serie para el tópico "${topic}" no está inicializada.`);
+        return;
+    }
+
+    // Actualizar la serie del gráfico
     series.update({ time: timestamp, value });
+
+    // Almacenar los datos en chartDataMap
+    if (!chartDataMap[topic]) {
+        chartDataMap[topic] = [];
+    }
+    chartDataMap[topic].push({ time: timestamp, value });
 }
 
 client.onMessageArrived = function (message) {
@@ -58,7 +73,8 @@ client.onMessageArrived = function (message) {
 
     const grafico = graficos.find(g => g.topic === topic);
     if (grafico) {
-        updateLightweightChart(chartSeriesMap[topic], value);
+        const series = chartSeriesMap[topic];
+        updateLightweightChart(series, value, topic);
         const label = document.getElementById(grafico.labelId);
         if (label) label.innerText = value;
     } else {
@@ -117,6 +133,7 @@ function downsampleData(data, intervalInSeconds = 1800) {
 
     return result;
 }
+
 async function loadDataFromCSV(series, topic) {
     try {
         const response = await fetch(CSV_URL);
@@ -142,48 +159,97 @@ async function loadDataFromCSV(series, topic) {
             data.push({ time: timestamp, value });
         }
 
-        // 👉 Reducir datos para evitar sobrecarga en el gráfico
-
+        // Reducir datos para evitar sobrecarga en el gráfico
         const dataReducida = downsampleData(data, 1800); // cada 30 minutos (1800s)
-        series.setData(dataReducida);
-        console.log(`📉 Histórico con downsampling cargado para ${topic} (${dataReducida.length} puntos)`);
+
+        // Combinar datos históricos con datos en tiempo real
+        const realtimeData = chartDataMap[topic] || [];
+        const combinedData = [...dataReducida, ...realtimeData];
+
+        // Establecer los datos combinados en la serie
+        series.setData(combinedData);
+
+        // Almacenar los datos combinados en chartDataMap
+        chartDataMap[topic] = combinedData;
+
+        console.log(`📉 Histórico y datos en tiempo real cargados para ${topic} (${combinedData.length} puntos)`);
 
     } catch (error) {
         console.error(`❌ Error al cargar CSV (${topic}):`, error.message);
     }
-}async function loadDataFromCSV(series, topic) {
-    try {
-        const response = await fetch(CSV_URL);
-        const csvText = await response.text();
-        const rows = csvText.trim().split('\n').slice(1);
+}
 
-        const data = [];
+function expandCard(card) {
+    const expandedContainer = document.getElementById("expandedCardContainer");
+    const expandedContent = document.getElementById("expandedCardContent");
 
-        for (let row of rows) {
-            const [id, csvTopic, valueStr, timeStr] = row.split(',');
-            if (csvTopic.trim() !== topic) continue;
+    if (!expandedContainer || !expandedContent) {
+        console.error("❌ Contenedor de tarjeta ampliada no encontrado.");
+        return;
+    }
 
-            const value = parseFloat(valueStr);
-            if (isNaN(value)) {
-                console.warn(`❌ Valor inválido para topic "${csvTopic}":`, valueStr);
-                continue;
-            }
+    // Copiar el contenido de la tarjeta seleccionada
+    expandedContent.innerHTML = card.innerHTML;
 
-            const date = new Date(timeStr);
-            const timestamp = Math.floor(date.getTime() / 1000) - (5 * 3600);
-            if (isNaN(timestamp)) continue;
+    // Obtener el ID del gráfico y el tópico asociado
+    const chartId = card.querySelector(".chart").id;
+    const grafico = graficos.find(g => g.id === chartId);
 
-            data.push({ time: timestamp, value });
+    if (grafico) {
+        // Crear un nuevo gráfico en el contenedor ampliado
+        const expandedChartContainer = expandedContent.querySelector(".chart");
+        expandedChartContainer.innerHTML = ""; // Limpiar el contenedor
+
+        // Asegurar que el contenedor tenga dimensiones válidas
+        expandedChartContainer.style.width = "100%";
+        expandedChartContainer.style.height = "100%";
+
+        const expandedChart = LightweightCharts.createChart(expandedChartContainer, {
+            width: expandedChartContainer.clientWidth || expandedChartContainer.offsetWidth,
+            height: expandedChartContainer.clientHeight || expandedChartContainer.offsetHeight,
+            layout: {
+                backgroundColor: '#ffffff',
+                textColor: '#000',
+            },
+            grid: {
+                vertLines: { color: '#e1e1e1' },
+                horzLines: { color: '#e1e1e1' },
+            },
+            timeScale: {
+                timeVisible: true,
+                secondsVisible: false,
+            },
+        });
+
+        const expandedSeries = expandedChart.addLineSeries({
+            color: grafico.color,
+            lineWidth: 2,
+        });
+
+        // Transferir los datos combinados al gráfico ampliado
+        const data = chartDataMap[grafico.topic];
+        if (data) {
+            expandedSeries.setData(data);
+        } else {
+            console.warn(`⚠️ No se encontraron datos para el gráfico con tópico: ${grafico.topic}`);
         }
 
-        // 👉 Reducir datos para evitar sobrecarga en el gráfico
-        const dataReducida = downsampleData(data, 1800); // cada 30 minutos (1800s)
+        // Redibujar el gráfico al ajustar el tamaño
+        setTimeout(() => {
+            expandedChart.resize(expandedChartContainer.clientWidth, expandedChartContainer.clientHeight);
+        }, 100);
+    } else {
+        console.warn(`⚠️ No se encontró configuración para el gráfico con ID: ${chartId}`);
+    }
 
-        series.setData(dataReducida);
-        console.log(`📉 Histórico con downsampling cargado para ${topic} (${dataReducida.length} puntos)`);
+    // Mostrar el contenedor ampliado
+    expandedContainer.classList.remove("hidden");
+}
 
-    } catch (error) {
-        console.error(`❌ Error al cargar CSV (${topic}):`, error.message);
+function closeExpandedCard() {
+    const expandedContainer = document.getElementById("expandedCardContainer");
+    if (expandedContainer) {
+        expandedContainer.classList.add("hidden");
     }
 }
 
@@ -191,7 +257,12 @@ async function loadDataFromCSV(series, topic) {
 window.onload = () => {
     graficos.forEach(g => {
         const series = createLightweightChart(g.id, g.color);
-        chartSeriesMap[g.topic] = series;
-        loadDataFromCSV(series, g.topic);
+        if (series) {
+            chartSeriesMap[g.topic] = series; // Registrar la serie en el mapa
+            chartDataMap[g.topic] = []; // Inicializar el almacenamiento de datos
+            loadDataFromCSV(series, g.topic); // Cargar datos históricos
+        } else {
+            console.warn(`⚠️ No se pudo crear la serie para el gráfico con ID: ${g.id}`);
+        }
     });
 };
