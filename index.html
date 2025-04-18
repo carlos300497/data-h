@@ -13,6 +13,33 @@
 <body>
     <header>
         <h1>Sistema de Riego</h1>
+        <div id="humidityStatsHeader">
+            <p>
+                Máxima Humedad: <span id="headerMaxHumedadArandano">Cargando...</span> (<span id="headerMaxDate">Cargando...</span>)
+                <button id="calendarIconMax" class="calendar-icon" onclick="toggleCalendar('max')">📅</button>
+            </p>
+            <p>
+                Mínima Humedad: <span id="headerMinHumedadArandano">Cargando...</span> (<span id="headerMinDate">Cargando...</span>)
+                <button id="calendarIconMin" class="calendar-icon" onclick="toggleCalendar('min')">📅</button>
+            </p>
+            <p>
+                Máximo Bus de Voltaje: <span id="headerMaxBusVoltaje">Cargando...</span> (<span id="headerMaxBusDate">Cargando...</span>)
+                <button id="calendarIconMaxBus" class="calendar-icon" onclick="toggleCalendar('maxBus')">📅</button>
+            </p>
+            <p>
+                Mínimo Bus de Voltaje: <span id="headerMinBusVoltaje">Cargando...</span> (<span id="headerMinBusDate">Cargando...</span>)
+                <button id="calendarIconMinBus" class="calendar-icon" onclick="toggleCalendar('minBus')">📅</button>
+            </p>
+        </div>
+        <div id="calendarContainer" class="hidden">
+            <div id="calendarHeader">
+                <button id="prevMonth" onclick="changeMonth(-1)">◀</button>
+                <span id="currentMonth">Cargando...</span>
+                <button id="nextMonth" onclick="changeMonth(1)">▶</button>
+            </div>
+            <div id="calendar"></div>
+            <button onclick="closeCalendar()">Cerrar</button>
+        </div>
         <nav aria-label="Navegación principal">
             <div class="dropdown">
                 <button class="dropbtn">Menú</button>
@@ -92,7 +119,6 @@
         <div id="expandedCardContainer" class="hidden">
             <div class="expanded-card">
                 <button class="close-btn" onclick="closeExpandedCard()">Salir</button>
-                <div id="expandedCardContent"></div>
             </div>
         </div>
     </main>
