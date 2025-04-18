@@ -67,6 +67,31 @@ function updateLightweightChart(series, value, topic) {
     chartDataMap[topic].push({ time: timestamp, value });
 }
 
+async function sendTelegramAlert(message) {
+    const botToken = "YOUR_BOT_TOKEN"; // Reemplazar con el token del bot de Telegram
+    const chatId = "YOUR_CHAT_ID"; // Reemplazar con el ID del chat o grupo
+    const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+    try {
+        const response = await fetch(telegramApiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: message,
+            }),
+        });
+
+        if (!response.ok) {
+            console.error("❌ Error al enviar alerta a Telegram:", await response.text());
+        } else {
+            console.log("✅ Alerta enviada a Telegram.");
+        }
+    } catch (error) {
+        console.error("❌ Error al conectar con Telegram:", error.message);
+    }
+}
+
 client.onMessageArrived = function (message) {
     const topic = message.destinationName;
     const value = parseFloat(message.payloadString.replace(/\[|\]|"/g, ""));
@@ -77,6 +102,13 @@ client.onMessageArrived = function (message) {
         updateLightweightChart(series, value, topic);
         const label = document.getElementById(grafico.labelId);
         if (label) label.innerText = value;
+
+        // Verificar si la humedad supera el umbral
+        if (topic === "sensor/humedad/arandano" && value > 1300) {
+            console.warn("⚠️ Alerta: Humedad alta detectada:", value);
+            const alertMessage = `⚠️ Alerta: La humedad ha superado el límite. Valor actual: ${value}`;
+            sendTelegramAlert(alertMessage); // Enviar alerta a Telegram
+        }
     } else {
         console.warn(`⚠️ Tópico desconocido: ${topic}`);
     }
@@ -179,6 +211,126 @@ async function loadDataFromCSV(series, topic) {
     }
 }
 
+async function calculateWeeklyHumidityStats() {
+    try {
+        const response = await fetch(CSV_URL);
+        const csvText = await response.text();
+        const rows = csvText.trim().split('\n').slice(1);
+
+        let maxHumidity = Number.NEGATIVE_INFINITY;
+        let minHumidity = Number.POSITIVE_INFINITY;
+        let maxDate = null;
+        let minDate = null;
+
+        for (let row of rows) {
+            const [id, csvTopic, valueStr, timeStr] = row.split(',');
+            if (csvTopic.trim() !== "sensor/humedad/arandano") continue;
+
+            const value = parseFloat(valueStr);
+            const date = new Date(timeStr);
+
+            if (isNaN(value) || isNaN(date.getTime())) continue;
+
+            if (value > maxHumidity) {
+                maxHumidity = value;
+                maxDate = date;
+            }
+
+            if (value < minHumidity) {
+                minHumidity = value;
+                minDate = date;
+            }
+        }
+
+        // Verificar si se encontraron valores válidos
+        if (maxHumidity === Number.NEGATIVE_INFINITY || minHumidity === Number.POSITIVE_INFINITY) {
+            console.warn("⚠️ No se encontraron datos válidos para calcular la humedad.");
+            return;
+        }
+
+        // Mostrar los valores en el DOM
+        document.getElementById("headerMaxHumedadArandano").innerText = maxHumidity.toFixed(2);
+        document.getElementById("headerMinHumedadArandano").innerText = minHumidity.toFixed(2);
+
+        // Mostrar las fechas asociadas
+        const maxDateFormatted = maxDate ? maxDate.toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" }) : "N/A";
+        const minDateFormatted = minDate ? minDate.toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" }) : "N/A";
+
+        document.getElementById("headerMaxDate").innerText = maxDateFormatted;
+        document.getElementById("headerMinDate").innerText = minDateFormatted;
+
+    } catch (error) {
+        console.error("❌ Error al calcular estadísticas de humedad:", error.message);
+    }
+}
+
+async function updateWeeklyTrends() {
+    const weekPicker = document.getElementById("weekPicker");
+    const selectedWeek = weekPicker.value;
+
+    if (!selectedWeek) {
+        console.warn("⚠️ No se seleccionó ninguna semana.");
+        return;
+    }
+
+    try {
+        const response = await fetch(CSV_URL);
+        const csvText = await response.text();
+        const rows = csvText.trim().split('\n').slice(1);
+
+        const startDate = new Date(selectedWeek);
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 6);
+
+        let maxHumidity = Number.NEGATIVE_INFINITY;
+        let minHumidity = Number.POSITIVE_INFINITY;
+        let maxDate = null;
+        let minDate = null;
+
+        for (let row of rows) {
+            const [id, csvTopic, valueStr, timeStr] = row.split(',');
+            if (csvTopic.trim() !== "sensor/humedad/arandano") continue;
+
+            const value = parseFloat(valueStr);
+            const date = new Date(timeStr);
+
+            if (isNaN(value) || isNaN(date.getTime())) continue;
+
+            if (date >= startDate && date <= endDate) {
+                if (value > maxHumidity) {
+                    maxHumidity = value;
+                    maxDate = date;
+                }
+
+                if (value < minHumidity) {
+                    minHumidity = value;
+                    minDate = date;
+                }
+            }
+        }
+
+        // Verificar si se encontraron valores válidos
+        if (maxHumidity === Number.NEGATIVE_INFINITY || minHumidity === Number.POSITIVE_INFINITY) {
+            console.warn("⚠️ No se encontraron datos válidos para la semana seleccionada.");
+            return;
+        }
+
+        // Mostrar los valores en el DOM
+        document.getElementById("headerMaxHumedadArandano").innerText = maxHumidity.toFixed(2);
+        document.getElementById("headerMinHumedadArandano").innerText = minHumidity.toFixed(2);
+
+        // Mostrar las fechas asociadas
+        const maxDateFormatted = maxDate ? maxDate.toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" }) : "N/A";
+        const minDateFormatted = minDate ? minDate.toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" }) : "N/A";
+
+        document.getElementById("headerMaxDate").innerText = maxDateFormatted;
+        document.getElementById("headerMinDate").innerText = minDateFormatted;
+
+    } catch (error) {
+        console.error("❌ Error al actualizar tendencias semanales:", error.message);
+    }
+}
+
 function expandCard(card) {
     const expandedContainer = document.getElementById("expandedCardContainer");
     const expandedContent = document.getElementById("expandedCardContent");
@@ -253,6 +405,197 @@ function closeExpandedCard() {
     }
 }
 
+function toggleCalendar(type) {
+    const calendarContainer = document.getElementById("calendarContainer");
+    calendarContainer.classList.toggle("hidden");
+    calendarContainer.dataset.type = type; // Guardar si es para "max" o "min"
+    renderCalendar();
+}
+
+function closeCalendar() {
+    const calendarContainer = document.getElementById("calendarContainer");
+    calendarContainer.classList.add("hidden");
+}
+
+let currentDate = new Date();
+
+function renderCalendar() {
+    const calendar = document.getElementById("calendar");
+    const currentMonth = document.getElementById("currentMonth");
+    calendar.innerHTML = ""; // Limpiar el calendario
+
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+    // Mostrar el mes y año actual
+    currentMonth.innerText = startOfMonth.toLocaleDateString("es-ES", {
+        year: "numeric",
+        month: "long",
+    });
+
+    // Obtener el día de la semana del primer día del mes
+    const startDay = startOfMonth.getDay();
+
+    // Rellenar días vacíos antes del inicio del mes
+    for (let i = 0; i < startDay; i++) {
+        const emptyCell = document.createElement("div");
+        calendar.appendChild(emptyCell);
+    }
+
+    // Rellenar los días del mes
+    for (let day = 1; day <= endOfMonth.getDate(); day++) {
+        const dayCell = document.createElement("div");
+        dayCell.innerText = day;
+        dayCell.onclick = () => selectDate(day);
+        calendar.appendChild(dayCell);
+    }
+}
+
+function changeMonth(direction) {
+    currentDate.setMonth(currentDate.getMonth() + direction);
+    renderCalendar();
+}
+
+async function updateHumidityStats(startDate, endDate) {
+    try {
+        const response = await fetch(CSV_URL);
+        const csvText = await response.text();
+        const rows = csvText.trim().split('\n').slice(1);
+
+        let maxHumidity = Number.NEGATIVE_INFINITY;
+        let minHumidity = Number.POSITIVE_INFINITY;
+        let maxDate = null;
+        let minDate = null;
+
+        for (let row of rows) {
+            const [id, csvTopic, valueStr, timeStr] = row.split(',');
+            if (csvTopic.trim() !== "sensor/humedad/arandano") continue;
+
+            const value = parseFloat(valueStr);
+            const date = new Date(timeStr);
+
+            if (isNaN(value) || isNaN(date.getTime())) continue;
+
+            if (date >= startDate && date <= endDate) {
+                if (value > maxHumidity) {
+                    maxHumidity = value;
+                    maxDate = date;
+                }
+
+                if (value < minHumidity) {
+                    minHumidity = value;
+                    minDate = date;
+                }
+            }
+        }
+
+        // Verificar si se encontraron valores válidos
+        if (maxHumidity === Number.NEGATIVE_INFINITY || minHumidity === Number.POSITIVE_INFINITY) {
+            console.warn("⚠️ No se encontraron datos válidos para el rango seleccionado.");
+            return;
+        }
+
+        const calendarType = document.getElementById("calendarContainer").dataset.type;
+
+        if (calendarType === "max") {
+            document.getElementById("headerMaxHumedadArandano").innerText = maxHumidity.toFixed(2);
+            document.getElementById("headerMaxDate").innerText = maxDate.toLocaleDateString("es-ES", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            });
+        } else if (calendarType === "min") {
+            document.getElementById("headerMinHumedadArandano").innerText = minHumidity.toFixed(2);
+            document.getElementById("headerMinDate").innerText = minDate.toLocaleDateString("es-ES", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            });
+        }
+
+        closeCalendar();
+    } catch (error) {
+        console.error("❌ Error al actualizar estadísticas de humedad:", error.message);
+    }
+}
+
+async function updateVoltageStats(startDate, endDate) {
+    try {
+        const response = await fetch(CSV_URL);
+        const csvText = await response.text();
+        const rows = csvText.trim().split('\n').slice(1);
+
+        let maxVoltage = Number.NEGATIVE_INFINITY;
+        let minVoltage = Number.POSITIVE_INFINITY;
+        let maxDate = null;
+        let minDate = null;
+
+        for (let row of rows) {
+            const [id, csvTopic, valueStr, timeStr] = row.split(',');
+            if (csvTopic.trim() !== "inomax/busdevoltaje") continue;
+
+            const value = parseFloat(valueStr);
+            const date = new Date(timeStr);
+
+            if (isNaN(value) || isNaN(date.getTime())) continue;
+
+            if (date >= startDate && date <= endDate) {
+                if (value > maxVoltage) {
+                    maxVoltage = value;
+                    maxDate = date;
+                }
+
+                if (value < minVoltage) {
+                    minVoltage = value;
+                    minDate = date;
+                }
+            }
+        }
+
+        // Verificar si se encontraron valores válidos
+        if (maxVoltage === Number.NEGATIVE_INFINITY || minVoltage === Number.POSITIVE_INFINITY) {
+            console.warn("⚠️ No se encontraron datos válidos para el rango seleccionado.");
+            return;
+        }
+
+        const calendarType = document.getElementById("calendarContainer").dataset.type;
+
+        if (calendarType === "maxBus") {
+            document.getElementById("headerMaxBusVoltaje").innerText = maxVoltage.toFixed(2);
+            document.getElementById("headerMaxBusDate").innerText = maxDate.toLocaleDateString("es-ES", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            });
+        } else if (calendarType === "minBus") {
+            document.getElementById("headerMinBusVoltaje").innerText = minVoltage.toFixed(2);
+            document.getElementById("headerMinBusDate").innerText = minDate.toLocaleDateString("es-ES", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            });
+        }
+
+        closeCalendar();
+    } catch (error) {
+        console.error("❌ Error al actualizar estadísticas de voltaje:", error.message);
+    }
+}
+
+function selectDate(day) {
+    const selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+
+    // Establecer el rango de inicio y fin para el día seleccionado
+    const startDate = new Date(selectedDate);
+    startDate.setHours(0, 0, 0, 0); // Inicio del día
+    const endDate = new Date(selectedDate);
+    endDate.setHours(23, 59, 59, 999); // Fin del día
+
+    // Actualizar las estadísticas de humedad y voltaje para el día seleccionado
+    updateHumidityStats(startDate, endDate);
+    updateVoltageStats(startDate, endDate);
+}
+
 // ✅ Al cargar la página
 window.onload = () => {
     graficos.forEach(g => {
@@ -265,4 +608,5 @@ window.onload = () => {
             console.warn(`⚠️ No se pudo crear la serie para el gráfico con ID: ${g.id}`);
         }
     });
+    calculateWeeklyHumidityStats();
 };
