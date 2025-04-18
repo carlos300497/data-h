@@ -413,11 +413,23 @@ function toggleCalendar(type) {
     calendarContainer.classList.toggle("hidden");
     calendarContainer.dataset.type = type; // Guardar si es para "max" o "min"
     renderCalendar();
+
+    // Agregar un evento para cerrar el calendario al hacer clic fuera
+    document.addEventListener("click", closeCalendarOnClickOutside);
+}
+
+function closeCalendarOnClickOutside(event) {
+    const calendarContainer = document.getElementById("calendarContainer");
+    if (!calendarContainer.contains(event.target) && !event.target.classList.contains("calendar-icon")) {
+        closeCalendar();
+        document.removeEventListener("click", closeCalendarOnClickOutside); // Eliminar el evento después de cerrar
+    }
 }
 
 function closeCalendar() {
     const calendarContainer = document.getElementById("calendarContainer");
     calendarContainer.classList.add("hidden");
+    document.removeEventListener("click", closeCalendarOnClickOutside); // Asegurar que el evento se elimine
 }
 
 let currentDate = new Date();
@@ -436,13 +448,13 @@ function renderCalendar() {
         month: "long",
     });
 
-    // Obtener el día de la semana del primer día del mes
-    const startDay = startOfMonth.getDay();
+    // Obtener el día de la semana del primer día del mes (0 = Domingo, 6 = Sábado)
+    const startDay = (startOfMonth.getDay() + 6) % 7; // Ajustar para que Lunes sea el primer día (0 = Lunes)
 
     // Rellenar días vacíos antes del inicio del mes
     for (let i = 0; i < startDay; i++) {
         const emptyCell = document.createElement("div");
-        emptyCell.style.visibility = "hidden"; // Ocultar celdas vacías
+        emptyCell.classList.add("empty-cell"); // Clase para celdas vacías
         calendar.appendChild(emptyCell);
     }
 
