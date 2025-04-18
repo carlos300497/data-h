@@ -1,3 +1,4 @@
+
 const CSV_URL = "https://raw.githubusercontent.com/carlos300497/data-h/main/lecturas.csv";
 const broker = 'wss://broker.emqx.io:8084/mqtt';
 
