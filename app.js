@@ -160,7 +160,7 @@ async function loadDataFromCSV(series, topic) {
         }
 
         // Reducir datos para evitar sobrecarga en el gráfico
-        const dataReducida = downsampleData(data, 1800); // cada 30 minutos (1800s)
+        const dataReducida = downsampleData(data, 500); // cada 30 minutos (1800s)
 
         // Combinar datos históricos con datos en tiempo real
         const realtimeData = chartDataMap[topic] || [];
