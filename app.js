@@ -1,4 +1,3 @@
-
 const CSV_URL = "https://raw.githubusercontent.com/carlos300497/data-h/main/lecturas.csv";
 const broker = 'wss://broker.emqx.io:8084/mqtt';
 
@@ -409,70 +408,6 @@ function closeExpandedCard() {
     }
 }
 
-function toggleCalendar(type) {
-    const calendarContainer = document.getElementById("calendarContainer");
-    calendarContainer.classList.toggle("hidden");
-    calendarContainer.dataset.type = type; // Guardar si es para "max" o "min"
-    renderCalendar();
-
-    // Agregar un evento para cerrar el calendario al hacer clic fuera
-    document.addEventListener("click", closeCalendarOnClickOutside);
-}
-
-function closeCalendarOnClickOutside(event) {
-    const calendarContainer = document.getElementById("calendarContainer");
-    if (!calendarContainer.contains(event.target) && !event.target.classList.contains("calendar-icon")) {
-        closeCalendar();
-        document.removeEventListener("click", closeCalendarOnClickOutside); // Eliminar el evento después de cerrar
-    }
-}
-
-function closeCalendar() {
-    const calendarContainer = document.getElementById("calendarContainer");
-    calendarContainer.classList.add("hidden");
-    document.removeEventListener("click", closeCalendarOnClickOutside); // Asegurar que el evento se elimine
-}
-
-let currentDate = new Date();
-
-function renderCalendar() {
-    const calendar = document.getElementById("calendar");
-    const currentMonth = document.getElementById("currentMonth");
-    calendar.innerHTML = ""; // Limpiar el calendario
-
-    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-
-    // Mostrar el mes y año actual
-    currentMonth.innerText = startOfMonth.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "long",
-    });
-
-    // Obtener el día de la semana del primer día del mes (0 = Domingo, 6 = Sábado)
-    const startDay = (startOfMonth.getDay() + 6) % 7; // Ajustar para que Lunes sea el primer día (0 = Lunes)
-
-    // Rellenar días vacíos antes del inicio del mes
-    for (let i = 0; i < startDay; i++) {
-        const emptyCell = document.createElement("div");
-        emptyCell.classList.add("empty-cell"); // Clase para celdas vacías
-        calendar.appendChild(emptyCell);
-    }
-
-    // Rellenar los días del mes
-    for (let day = 1; day <= endOfMonth.getDate(); day++) {
-        const dayCell = document.createElement("div");
-        dayCell.innerText = day;
-        dayCell.onclick = () => selectDate(day);
-        calendar.appendChild(dayCell);
-    }
-}
-
-function changeMonth(direction) {
-    currentDate.setMonth(currentDate.getMonth() + direction);
-    renderCalendar();
-}
-
 async function updateHumidityStats(startDate, endDate) {
     try {
         const response = await fetch(CSV_URL);
@@ -599,18 +534,57 @@ async function updateVoltageStats(startDate, endDate) {
     }
 }
 
-function selectDate(day) {
-    const selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+async function calculateVoltageStats() {
+    try {
+        const response = await fetch(CSV_URL);
+        const csvText = await response.text();
+        const rows = csvText.trim().split('\n').slice(1);
 
-    // Establecer el rango de inicio y fin para el día seleccionado
-    const startDate = new Date(selectedDate);
-    startDate.setHours(0, 0, 0, 0); // Inicio del día
-    const endDate = new Date(selectedDate);
-    endDate.setHours(23, 59, 59, 999); // Fin del día
+        let maxVoltage = Number.NEGATIVE_INFINITY;
+        let minVoltage = Number.POSITIVE_INFINITY;
+        let maxDate = null;
+        let minDate = null;
 
-    // Actualizar las estadísticas de humedad y voltaje para el día seleccionado
-    updateHumidityStats(startDate, endDate);
-    updateVoltageStats(startDate, endDate);
+        for (let row of rows) {
+            const [id, csvTopic, valueStr, timeStr] = row.split(',');
+            if (csvTopic.trim() !== "inomax/busdevoltaje") continue;
+
+            const value = parseFloat(valueStr);
+            const date = new Date(timeStr);
+
+            if (isNaN(value) || isNaN(date.getTime())) continue;
+
+            if (value > maxVoltage) {
+                maxVoltage = value;
+                maxDate = date;
+            }
+
+            if (value < minVoltage) {
+                minVoltage = value;
+                minDate = date;
+            }
+        }
+
+        // Verificar si se encontraron valores válidos
+        if (maxVoltage === Number.NEGATIVE_INFINITY || minVoltage === Number.POSITIVE_INFINITY) {
+            console.warn("⚠️ No se encontraron datos válidos para el bus de voltaje.");
+            return;
+        }
+
+        // Mostrar los valores en el DOM
+        document.getElementById("headerMaxBusVoltaje").innerText = maxVoltage.toFixed(2);
+        document.getElementById("headerMinBusVoltaje").innerText = minVoltage.toFixed(2);
+
+        // Mostrar las fechas asociadas
+        const maxDateFormatted = maxDate ? maxDate.toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" }) : "N/A";
+        const minDateFormatted = minDate ? minDate.toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" }) : "N/A";
+
+        document.getElementById("headerMaxBusDate").innerText = maxDateFormatted;
+        document.getElementById("headerMinBusDate").innerText = minDateFormatted;
+
+    } catch (error) {
+        console.error("❌ Error al calcular estadísticas del bus de voltaje:", error.message);
+    }
 }
 
 // ✅ Al cargar la página
@@ -626,6 +600,7 @@ window.onload = () => {
         }
     });
     calculateWeeklyHumidityStats();
+    calculateVoltageStats(); // Llamar a la función para calcular estadísticas del bus de voltaje
 };
 
 let currentCarouselIndex = 0;
