@@ -341,7 +341,10 @@ function expandCard(card) {
     }
 
     // Copiar el contenido de la tarjeta seleccionada
-    expandedContent.innerHTML = card.innerHTML;
+    expandedContent.innerHTML = `
+        <button class="close-btn" onclick="closeExpandedCard()">Salir</button>
+        ${card.innerHTML}
+    `;
 
     // Obtener el ID del gráfico y el tópico asociado
     const chartId = card.querySelector(".chart").id;
@@ -439,6 +442,7 @@ function renderCalendar() {
     // Rellenar días vacíos antes del inicio del mes
     for (let i = 0; i < startDay; i++) {
         const emptyCell = document.createElement("div");
+        emptyCell.style.visibility = "hidden"; // Ocultar celdas vacías
         calendar.appendChild(emptyCell);
     }
 
@@ -610,3 +614,36 @@ window.onload = () => {
     });
     calculateWeeklyHumidityStats();
 };
+
+let currentCarouselIndex = 0;
+
+function moveCarousel(direction) {
+    const carouselContent = document.querySelector(".carousel-content");
+    const items = document.querySelectorAll(".carousel-item");
+    const totalItems = items.length;
+
+    currentCarouselIndex = (currentCarouselIndex + direction + totalItems) % totalItems;
+    const offset = -currentCarouselIndex * 100;
+
+    carouselContent.style.transform = `translateX(${offset}%)`;
+}
+
+let currentCardsCarouselIndex = 0;
+
+function moveCardsCarousel(direction) {
+    const carouselContent = document.querySelector("#cardsCarousel .carousel-content");
+    const items = document.querySelectorAll("#cardsCarousel .carousel-item");
+    const totalItems = items.length;
+
+    // Verificar si hay elementos en el carrusel
+    if (totalItems === 0) return;
+
+    // Actualizar el índice actual del carrusel
+    currentCardsCarouselIndex = (currentCardsCarouselIndex + direction + totalItems) % totalItems;
+
+    // Calcular el desplazamiento para mostrar una tarjeta a la vez
+    const offset = -currentCardsCarouselIndex * 100;
+
+    // Aplicar el desplazamiento al contenedor del carrusel
+    carouselContent.style.transform = `translateX(${offset}%)`;
+}
