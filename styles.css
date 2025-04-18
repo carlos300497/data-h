@@ -106,38 +106,6 @@ main {
     animation: slideIn 1s ease-in-out;
 }
 
-#humidityStats {
-    margin-top: 20px;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-#humidityStats h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-#humidityStatsHeader {
-    display: flex;
-    justify-content: center;
-    gap: 20px; /* Espaciado horizontal entre las etiquetas */
-    margin-top: 10px;
-    font-size: 1.2em;
-    text-align: center;
-}
-
-#humidityStatsHeader p {
-    background-color: #ffffff;
-    color: #333;
-    padding: 10px 15px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 10px; /* Espaciado adicional entre estadísticas */
-}
-
 /* Keyframes para animaciones */
 @keyframes fadeIn {
     from {
@@ -192,9 +160,9 @@ button:hover {
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px; /* Aumenta el espacio entre tarjetas */
-    margin-bottom: 30px; /* Espaciado entre filas de tarjetas */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Ajustar automáticamente el número de columnas */
+    gap: 20px; /* Espaciado entre tarjetas */
+    margin-top: 20px;
 }
 
 .card {
@@ -204,6 +172,9 @@ button:hover {
     padding: 20px;
     text-align: center;
     transition: transform 0.3s, box-shadow 0.3s;
+    width: 100%; /* Asegurar que la tarjeta no exceda el ancho del carrusel */
+    max-width: 100%; /* Limitar el ancho máximo */
+    box-sizing: border-box; /* Incluir padding y borde en el tamaño total */
 }
 
 .card:hover {
@@ -292,18 +263,56 @@ button:hover {
     background-color: #C0392B;
 }
 
-.calendar-icon {
-    background: none;
-    border: none;
-    font-size: 1.2em;
-    cursor: pointer;
-    margin-left: 10px;
-    color: #4CAF50;
-    transition: transform 0.2s;
+.carousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.calendar-icon:hover {
-    transform: scale(1.2);
+.carousel-content {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
+}
+
+.carousel-item {
+    min-width: 100%;
+    text-align: center;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.carousel-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 1.5em;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    transition: background-color 0.3s;
+}
+
+.carousel-btn:hover {
+    background-color: #45a049;
+}
+
+.carousel-btn.prev {
+    left: 10px;
+}
+
+.carousel-btn.next {
+    right: 10px;
 }
 
 #calendarContainer {
@@ -314,50 +323,12 @@ button:hover {
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 10px;
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     text-align: center;
-    width: 300px;
-}
-
-#calendarContainer.hidden {
-    display: none;
-}
-
-#calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-    margin-bottom: 15px;
-    color: #333; /* Cambiar el color del texto para que sea visible */
-}
-
-#calendar div {
-    padding: 10px;
-    text-align: center;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
-    color: #333; /* Asegurar que el texto sea visible */
-}
-
-#calendar div:hover {
-    background-color: #f0f0f0;
-    color: #000; /* Cambiar el color del texto al pasar el mouse */
-}
-
-#calendar .selected {
-    background-color: #4CAF50;
-    color: white;
-}
-
-#weekPicker {
-    padding: 10px;
-    font-size: 1em;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-bottom: 10px;
+    width: 300px; /* Ajustar el ancho para mayor claridad */
+    max-width: 90%; /* Asegurar que no se desborde en pantallas pequeñas */
 }
 
 #calendarHeader {
@@ -367,7 +338,8 @@ button:hover {
     margin-bottom: 10px;
     font-size: 1.2em;
     font-weight: bold;
-    color: #333; /* Asegurar que el texto del encabezado sea visible */
+    color: #333;
+    text-transform: capitalize;
 }
 
 #calendarHeader button {
@@ -383,7 +355,103 @@ button:hover {
     transform: scale(1.2);
 }
 
-#currentMonth {
+#calendarGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* Asegurar 7 columnas para los días de la semana */
+    gap: 5px; /* Espaciado entre las celdas */
+    margin-top: 10px;
+    align-items: center; /* Centrar contenido verticalmente */
+}
+
+.calendar-day {
+    font-weight: bold;
+    color: #555;
     text-align: center;
-    flex-grow: 1;
+    padding: 5px 0;
+    font-size: 0.9em;
+}
+
+#calendar div {
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    color: #333;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    font-size: 0.9em;
+    box-sizing: border-box; /* Asegurar que el padding no desborde */
+}
+
+#calendar div:hover {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#calendar .selected {
+    background-color: #4CAF50;
+    color: white;
+    border: 1px solid #4CAF50;
+}
+
+#cardsCarousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 1200px; /* Limitar el ancho máximo del carrusel */
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box; /* Asegurar que el padding y borde no desborden */
+}
+
+#cardsCarousel .carousel-content {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
+    position: relative; /* Asegura que el contenido se mantenga dentro del carrusel */
+    justify-content: center; /* Centrar las tarjetas dentro del carrusel */
+}
+
+#cardsCarousel .carousel-item {
+    flex: 0 0 100%; /* Cada tarjeta ocupa el 100% del ancho del carrusel */
+    max-width: 100%; /* Asegurar que no exceda el ancho del carrusel */
+    text-align: center;
+    padding: 10px;
+    box-sizing: border-box; /* Incluir padding y borde en el tamaño total */
+    display: flex;
+    justify-content: center; /* Centrar el contenido de la tarjeta */
+    align-items: center; /* Centrar verticalmente el contenido */
+}
+
+/* Asegurar que los botones del carrusel sean visibles y funcionales */
+#cardsCarousel .carousel-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 1.5em;
+    position: absolute;
+    top: 50%; /* Centrar verticalmente las flechas */
+    transform: translateY(-50%);
+    z-index: 10;
+    transition: background-color 0.3s;
+}
+
+#cardsCarousel .carousel-btn.prev {
+    left: 10px; /* Alinear la flecha izquierda */
+}
+
+#cardsCarousel .carousel-btn.next {
+    right: 10px; /* Alinear la flecha derecha */
+}
+
+/* Asegurar que los botones sean visibles al pasar el mouse */
+#cardsCarousel:hover .carousel-btn {
+    opacity: 1;
 }
