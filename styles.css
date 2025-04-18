@@ -66,7 +66,7 @@ nav {
     transform: translateX(-50%) translateY(5px);
 }
 
-/* Encabezado aas*/
+/* Encabezado */
 header {
     background-color: #4CAF50;
     color: white;
@@ -152,4 +152,110 @@ button {
 button:hover {
     background-color: #45a049;
     transform: scale(1.05);
+}
+
+#dashboard {
+    padding: 20px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px; /* Aumenta el espacio entre tarjetas */
+    margin-bottom: 30px; /* Espaciado entre filas de tarjetas */
+}
+
+.card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card h3 {
+    margin-bottom: 15px; /* Más espacio debajo del título */
+    font-size: 1.3em;
+    color: #333;
+}
+
+.card p {
+    font-size: 1.6em; /* Texto más grande para los valores */
+    font-weight: bold;
+    color: #555;
+}
+
+.chart {
+    height: 250px; /* Reduce la altura del gráfico para más espacio */
+    margin-top: 15px;
+}
+
+.hidden {
+    display: none !important; /* Asegura que el contenedor esté oculto */
+}
+
+#expandedCardContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    overflow: auto; /* Permite desplazamiento si el contenido es muy grande */
+}
+
+.expanded-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    width: 90%; /* Ocupa el 90% del ancho de la pantalla */
+    max-width: 1200px; /* Máximo ancho */
+    height: 90%; /* Ocupa el 90% del alto de la pantalla */
+    max-height: 90%; /* Máximo alto */
+    text-align: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.expanded-card .chart {
+    flex-grow: 0.5; /* Permite que el gráfico ocupe todo el espacio disponible */
+    width: 100%; /* Asegura que el gráfico ocupe todo el ancho */
+    height: auto; /* Ajusta el alto automáticamente */
+    aspect-ratio: 4 / 1.5; /* Mantiene una proporción de 4:3 */
+    margin: 0; /* Elimina márgenes */
+    padding: 0; /* Elimina relleno */
+    overflow: hidden; /* Evita el desbordamiento */
+    display: block; /* Asegura que el gráfico se renderice correctamente */
+    box-sizing: border-box; /* Incluye bordes y relleno en las dimensiones */
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #E74C3C;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.close-btn:hover {
+    background-color: #C0392B;
 }
