@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -20,47 +19,25 @@
                 <div class="carousel-item">
                     <p>
                         Máxima Humedad: <span id="headerMaxHumedadArandano">Cargando...</span> (<span id="headerMaxDate">Cargando...</span>)
-                        <button id="calendarIconMax" class="calendar-icon" onclick="toggleCalendar('max')">📅</button>
                     </p>
                 </div>
                 <div class="carousel-item">
                     <p>
                         Mínima Humedad: <span id="headerMinHumedadArandano">Cargando...</span> (<span id="headerMinDate">Cargando...</span>)
-                        <button id="calendarIconMin" class="calendar-icon" onclick="toggleCalendar('min')">📅</button>
                     </p>
                 </div>
                 <div class="carousel-item">
                     <p>
                         Máximo Bus de Voltaje: <span id="headerMaxBusVoltaje">Cargando...</span> (<span id="headerMaxBusDate">Cargando...</span>)
-                        <button id="calendarIconMaxBus" class="calendar-icon" onclick="toggleCalendar('maxBus')">📅</button>
                     </p>
                 </div>
                 <div class="carousel-item">
                     <p>
                         Mínimo Bus de Voltaje: <span id="headerMinBusVoltaje">Cargando...</span> (<span id="headerMinBusDate">Cargando...</span>)
-                        <button id="calendarIconMinBus" class="calendar-icon" onclick="toggleCalendar('minBus')">📅</button>
                     </p>
                 </div>
             </div>
             <button class="carousel-btn next" onclick="moveCarousel(1)">▶</button>
-        </div>
-        <div id="calendarContainer" class="hidden">
-            <div id="calendarHeader">
-                <button id="prevMonth" onclick="changeMonth(-1)">◀</button>
-                <span id="currentMonth">Cargando...</span>
-                <button id="nextMonth" onclick="changeMonth(1)">▶</button>
-            </div>
-            <div id="calendarGrid">
-                <div class="calendar-day">Dom</div>
-                <div class="calendar-day">Lun</div>
-                <div class="calendar-day">Mar</div>
-                <div class="calendar-day">Mié</div>
-                <div class="calendar-day">Jue</div>
-                <div class="calendar-day">Vie</div>
-                <div class="calendar-day">Sáb</div>
-                <div id="calendar"></div>
-            </div>
-            <button onclick="closeCalendar()">Cerrar</button>
         </div>
         <nav aria-label="Navegación principal">
             <div class="dropdown">
